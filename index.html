@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legendary 007 — Setup Randomizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: #7a5e28;
+    --black: #080808;
+    --panel: #161412;
+    --border: #2a2318;
+    --text: #d4c8a8;
+    --text-dim: #7a7060;
+    --white: #f0ece0;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 56px 0 36px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .eyebrow {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 6px;
+    font-size: 0.75rem;
+    color: var(--gold-dim);
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    letter-spacing: 4px;
+    line-height: 0.95;
+    background: linear-gradient(160deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dim) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--text-dim);
+    margin-top: 10px;
+    letter-spacing: 1px;
+  }
+
+  /* ── EXPANSION TOGGLES ── */
+  .exp-section {
+    margin-bottom: 44px;
+  }
+
+  .exp-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .exp-section-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 5px;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+  }
+
+  .toggle-all-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .toggle-all-btn:hover {
+    border-color: var(--gold-dim);
+    color: var(--gold);
+  }
+
+  .exp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .exp-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 11px 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    user-select: none;
+  }
+
+  .exp-toggle:hover {
+    border-color: var(--gold-dim);
+  }
+
+  .exp-toggle.active {
+    border-color: var(--gold-dim);
+    background: rgba(201,168,76,0.06);
+  }
+
+  .exp-toggle.active .exp-check {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .exp-toggle.active .exp-check::after {
+    opacity: 1;
+  }
+
+  .exp-check {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    position: relative;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .exp-check::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 4px;
+    width: 5px; height: 8px;
+    border: 2px solid var(--black);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .exp-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+
+  .error-msg {
+    text-align: center;
+    color: #c08020;
+    font-style: italic;
+    font-size: 0.95rem;
+    padding: 16px;
+    border: 1px solid #4a3010;
+    background: rgba(192,128,32,0.06);
+    margin-bottom: 24px;
+  }
+
+  /* ── PLAYER COUNT ── */
+  .player-section {
+    margin-bottom: 32px;
+  }
+
+  .player-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .player-btn {
+    flex: 1;
+    min-width: 52px;
+    padding: 10px 6px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    position: relative;
+  }
+
+  .player-btn:hover {
+    border-color: var(--gold-dim);
+    color: var(--text);
+  }
+
+  .player-btn.active {
+    border-color: var(--gold-dim);
+    background: rgba(201,168,76,0.06);
+    color: var(--gold-light);
+  }
+
+
+
+
+  /* ── BUTTON ── */
+  .btn-randomize {
+    display: block;
+    margin: 0 auto 52px;
+    padding: 16px 56px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold-light);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 5px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: color 0.3s, box-shadow 0.3s;
+  }
+
+  .btn-randomize::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-101%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: -1;
+  }
+
+  .btn-randomize:hover {
+    color: var(--black);
+    box-shadow: 0 0 28px rgba(201,168,76,0.3);
+  }
+
+  .btn-randomize:hover::before { transform: translateX(0); }
+
+  .btn-randomize:active { transform: scale(0.98); }
+
+  /* ── RESULTS GRID ── */
+  .results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 600px) {
+    .results { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 22px 26px 20px;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.45s ease, transform 0.45s ease, border-color 0.3s;
+  }
+
+  .card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .card:hover {
+    border-color: var(--gold-dim);
+  }
+
+  /* Gold left accent bar */
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+  }
+
+  /* Hero card spans full width */
+  .card.heroes {
+    grid-column: 1 / -1;
+  }
+
+  .card-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 5px;
+    color: var(--gold-dim);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .card-value {
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1.25;
+  }
+
+  .card-meta {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .card-note {
+    font-size: 0.78rem;
+    color: #c09020;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* Heroes list */
+  .hero-list {
+    list-style: none;
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .hero-item {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    min-width: 140px;
+    flex: 1 1 140px;
+  }
+
+  @media (max-width: 500px) {
+    .hero-list { display: grid; grid-template-columns: 1fr 1fr; }
+    .hero-item { min-width: 0; }
+  }
+
+  .hero-item.bond-hero {
+    border-color: var(--gold-dim);
+    background: rgba(201,168,76,0.05);
+  }
+
+  .hero-item .hero-badge {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.55rem;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .hero-item .hero-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .hero-item .hero-meta {
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* Re-roll button */
+  .reroll-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: border-color 0.2s, color 0.2s, transform 0.3s;
+    flex-shrink: 0;
+  }
+
+  .reroll-btn:hover {
+    border-color: var(--gold-dim);
+    color: var(--gold);
+  }
+
+  .reroll-btn.spinning {
+    transform: rotate(360deg);
+    transition: transform 0.4s ease;
+  }
+
+  .hero-reroll {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.7rem;
+    line-height: 1;
+    transition: border-color 0.2s, color 0.2s, transform 0.3s;
+  }
+
+  .hero-reroll:hover {
+    border-color: var(--gold-dim);
+    color: var(--gold);
+  }
+
+  .hero-reroll.spinning {
+    transform: rotate(360deg);
+    transition: transform 0.4s ease;
+  }
+
+  .hero-item {
+    position: relative;
+    padding-right: 30px;
+  }
+
+  /* Placeholder state */
+  .placeholder-text {
+    text-align: center;
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    padding: 20px 0;
+  }
+
+  /* Divider */
+  .section-divider {
+    text-align: center;
+    margin: 36px 0 28px;
+    position: relative;
+  }
+
+  .section-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-divider span {
+    position: relative;
+    background: var(--black);
+    padding: 0 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 5px;
+    color: var(--text-dim);
+  }
+
+  /* Gun barrel decoration */
+  .barrel {
+    display: block;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 20px;
+    opacity: 0.6;
+  }
+
+@media print {
+  body { background: #fff !important; color: #111 !important; }
+  body::before { display: none; }
+  header { border-bottom: 1px solid #ccc; padding: 20px 0 16px; margin-bottom: 24px; }
+  h1 { background: none !important; -webkit-text-fill-color: #111 !important; font-size: 2.5rem !important; }
+  .eyebrow, .subtitle { color: #666 !important; }
+  .exp-section, .player-section, .btn-randomize, .reroll-btn, .hero-reroll, .barrel { display: none !important; }
+  .wrapper { padding: 0 16px 20px; }
+  .results { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card {
+    background: #fff !important;
+    border: 1px solid #bbb !important;
+    opacity: 1 !important;
+    transform: none !important;
+    break-inside: avoid;
+    padding: 14px 16px;
+  }
+  .card::before { display: none; }
+  .card-label { color: #888 !important; }
+  .card-value { color: #111 !important; }
+  .card-meta { color: #555 !important; }
+  .card-note { color: #a06000 !important; border-top-color: #ddd !important; }
+  .card.heroes { grid-column: 1 / -1; }
+  .hero-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hero-item {
+    background: #f9f9f9 !important;
+    border: 1px solid #ccc !important;
+    padding: 8px 10px;
+    min-width: 120px;
+    flex: 1 1 120px;
+  }
+  .hero-item.bond-hero { border-color: #888 !important; background: #f5f3ec !important; }
+  .hero-badge { color: #666 !important; }
+  .hero-name { color: #111 !important; }
+  .hero-meta { color: #666 !important; }
+  span[style*="Bebas Neue"] { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <p class="eyebrow">Legendary</p>
+    <h1>007<br>Randomizer</h1>
+    <p class="subtitle">Mission Setup Generator</p>
+  </header>
+
+  <svg class="barrel" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="30" cy="30" r="28" stroke="#c9a84c" stroke-width="1"/>
+    <circle cx="30" cy="30" r="18" stroke="#c9a84c" stroke-width="0.5" opacity="0.5"/>
+    <circle cx="30" cy="30" r="8" stroke="#c9a84c" stroke-width="1"/>
+    <circle cx="30" cy="30" r="2" fill="#c9a84c"/>
+    <line x1="30" y1="2" x2="30" y2="12" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+    <line x1="30" y1="48" x2="30" y2="58" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+    <line x1="2" y1="30" x2="12" y2="30" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+    <line x1="48" y1="30" x2="58" y2="30" stroke="#c9a84c" stroke-width="0.5" opacity="0.4"/>
+  </svg>
+
+  <div class="exp-section">
+    <div class="exp-section-header">
+      <span class="exp-section-label">Your Expansions</span>
+      <button class="toggle-all-btn" id="toggleAllBtn">Select All</button>
+    </div>
+    <div class="exp-grid" id="expGrid">
+      <label class="exp-toggle active" data-exp="Base">
+        <span class="exp-check"></span>
+        <span>
+          <span class="exp-name">Base Game</span>
+        </span>
+      </label>
+      <label class="exp-toggle active" data-exp="Expansion 1">
+        <span class="exp-check"></span>
+        <span>
+          <span class="exp-name">Expansion 1</span>
+        </span>
+      </label>
+      <label class="exp-toggle active" data-exp='"The Spy Who Loved Me"'>
+        <span class="exp-check"></span>
+        <span>
+          <span class="exp-name">The Spy Who Loved Me</span>
+        </span>
+      </label>
+      <label class="exp-toggle active" data-exp='"Thunderball"'>
+        <span class="exp-check"></span>
+        <span>
+          <span class="exp-name">Thunderball</span>
+        </span>
+      </label>
+      <label class="exp-toggle active" data-exp='"No Time to Die"'>
+        <span class="exp-check"></span>
+        <span>
+          <span class="exp-name">No Time to Die</span>
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <div class="exp-section player-section">
+    <div class="exp-section-header">
+      <span class="exp-section-label">Number of Players</span>
+    </div>
+    <div class="player-btns" id="playerBtns">
+      <button class="player-btn" data-players="1">1</button>
+      <button class="player-btn active" data-players="2">2</button>
+      <button class="player-btn" data-players="3">3</button>
+      <button class="player-btn" data-players="4">4</button>
+      <button class="player-btn" data-players="5">5</button>
+    </div>
+  </div>
+
+  <button class="btn-randomize" id="randomBtn">— Randomize Setup —</button>
+
+  <div id="output">
+    <p class="placeholder-text">Press the button to generate your mission setup.</p>
+  </div>
+
+</div>
+
+<script>
+const DATA = {
+  masterminds: [
+    { name: "Auric Goldfinger",       movie: "Goldfinger",              set: "Base",          vgKey: "Goldfinger",              note: null },
+    { name: "Ernst Stavro Blofeld",   movie: "On Her Majesty's Secret Service", set: "Expansion 1",   vgKey: "OHMSS",                   note: null },
+    { name: "Francisco Scaramanga",   movie: "Man with the Golden Gun",  set: "Base",          vgKey: "Man with the Golden Gun", note: null },
+    { name: "Karl Stromberg",         movie: "The Spy Who Loved Me",    set: '"The Spy Who Loved Me"',          vgKey: "The Spy Who Loved Me",    note: 'Must use "Peril" deck for Mastermind or Villain Group' },
+    { name: "Franz Sanchez",          movie: "License to Kill",         set: "Expansion 1",   vgKey: "License to Kill",         note: 'Must use "Cartel" cards for Mastermind or Villain Group' },
+    { name: "Alec Trevelyan",         movie: "Goldeneye",               set: "Base",          vgKey: "Goldeneye",               note: 'Must use "006" cards for Mastermind' },
+    { name: "Le Chiffre",             movie: "Casino Royale",           set: "Base",          vgKey: "Casino Royale",           note: null },
+    { name: "Lyutsifer Safin",        movie: "No Time to Die",          set: '"No Time to Die"',     vgKey: "No Time to Die",          note: 'Must use "Nanobot Infection" Wounds for Mastermind or Villain Group; and "Gadget: Bionic Eye" for Villain Group' },
+    { name: "Emilio Largo",           movie: "Thunderball",             set: '"Thunderball"', vgKey: "Thunderball",             note: 'Must use "She\'s Just Dead" Wounds for VG' },
+  ],
+
+  villainGroups: [
+    { name: "Casino Royale",           key: "Casino Royale",           set: "Base" },
+    { name: "The Man with the Golden Gun", key: "Man with the Golden Gun", set: "Base" },
+    { name: "Goldeneye",               key: "Goldeneye",               set: "Base" },
+    { name: "Goldfinger",              key: "Goldfinger",              set: "Base" },
+    { name: "License to Kill",         key: "License to Kill",         set: "Expansion 1" },
+    { name: "On Her Majesty's Secret Service", key: "OHMSS",          set: "Expansion 1" },
+    { name: "No Time to Die",          key: "No Time to Die",          set: '"No Time to Die"' },
+    { name: "Thunderball",             key: "Thunderball",             set: '"Thunderball"' },
+    { name: "The Spy Who Loved Me",    key: "The Spy Who Loved Me",    set: '"The Spy Who Loved Me"' },
+  ],
+
+  missionGroups: [
+    { name: "Casino Royale Tournament",    key: "Casino Royale Tournament",   set: "Base" },
+    { name: "A Duel to the Death",         key: "A Duel to the Death",        set: "Base" },
+    { name: "Worldwide Financial Meltdown",key: "WWFM",                       set: "Base" },
+    { name: "Operation: Grand Slam",       key: "Operation: Grand Slam",      set: "Base" },
+    { name: "Expand Drug Empire",          key: "Expand Drug Empire",         set: "Expansion 1" },
+    { name: "Condition the Angels of Death", key: "Condition the Angels of Death", set: "Expansion 1" },
+    { name: "Project Heracles",            key: "Project Heracles",           set: '"No Time to Die"' },
+    { name: "NATO Project",               key: "NATO Project",                set: '"Thunderball"' },
+    { name: "Incite Nuclear War",          key: "Incite Nuclear War",         set: '"The Spy Who Loved Me"' },
+  ],
+
+  schemes: [
+    // mgKey: null = random; string = specific key from missionGroups; henchmanLocked = name of forced henchman
+    { name: "Operation: Grand Slam",              movie: "Goldfinger",              set: "Base",          mgKey: "Operation: Grand Slam",             henchmanLocked: null, note: null },
+    { name: "Orchestrate a Smuggling Ring",        movie: "Goldfinger",              set: "Base",          mgKey: null,                                henchmanLocked: null, note: null },
+    { name: "Condition the Angels of Death",       movie: "On Her Majesty's Secret Service", set: "Expansion 1",   mgKey: "Condition the Angels of Death",     henchmanLocked: null, note: 'Must use "Angel of Death" cards for Scheme and Mission Group' },
+    { name: "Create Omega Virus",                  movie: "On Her Majesty's Secret Service", set: "Expansion 1",   mgKey: null,                                henchmanLocked: null, note: null },
+    { name: "A Duel to the Death",                 movie: "Man with the Golden Gun",  set: "Base",          mgKey: "A Duel to the Death",               henchmanLocked: null, note: null },
+    { name: "Build a Secret Island Lair",          movie: "Man with the Golden Gun",  set: "Base",          mgKey: null,                                henchmanLocked: null, note: null },
+    { name: "Incite Nuclear War",                  movie: "The Spy Who Loved Me",    set: '"The Spy Who Loved Me"',          mgKey: "Incite Nuclear War",                henchmanLocked: null, note: 'Must use "Peril" deck for Scheme and Mission Group' },
+    { name: "Create a New World Beneath the Sea",  movie: "The Spy Who Loved Me",    set: '"The Spy Who Loved Me"',          mgKey: null,                                henchmanLocked: "Liparus Soldiers", note: 'Must use "Liparus Soldiers" Henchmen' },
+    { name: "Expand Drug Empire",                  movie: "License to Kill",         set: "Expansion 1",   mgKey: "Expand Drug Empire",                henchmanLocked: null, note: 'Must use "Cartel" cards for Scheme or Mission Group' },
+    { name: "Escape Custody",                      movie: "License to Kill",         set: "Expansion 1",   mgKey: null,                                henchmanLocked: null, note: 'Must use "Cartel" cards for Scheme or Mission Group' },
+    { name: "Worldwide Financial Meltdown",        movie: "Goldeneye",               set: "Base",          mgKey: "WWFM",                              henchmanLocked: null, note: null },
+    { name: "Fake Your Own Death",                 movie: "Goldeneye",               set: "Base",          mgKey: null,                                henchmanLocked: null, note: null },
+    { name: "Win the Casino Royale",               movie: "Casino Royale",           set: "Base",          mgKey: "Casino Royale Tournament",           henchmanLocked: null, note: 'Must use "Poison" card for Scheme or Mission Group' },
+    { name: "Selling Secrets",                     movie: "Casino Royale",           set: "Base",          mgKey: null,                                henchmanLocked: null, note: null },
+    { name: "Project Heracles",                    movie: "No Time to Die",          set: '"No Time to Die"',     mgKey: "Project Heracles",                  henchmanLocked: null, note: 'Must use "Nanobot Infection" Wounds for Scheme or Mission Group' },
+    { name: "Defeat James Bond",                   movie: "No Time to Die",          set: '"No Time to Die"',     mgKey: null,                                henchmanLocked: null, note: null },
+    { name: "NATO Project",                        movie: "Thunderball",             set: '"Thunderball"', mgKey: "NATO Project",                      henchmanLocked: null, note: 'Should use Thunderball Villain Group and "Domino" heroes for Mission Group' },
+    { name: "Steal a Nuclear Bomber",              movie: "Thunderball",             set: '"Thunderball"', mgKey: null,                                henchmanLocked: null, note: 'Must use "Hidden Bomber" cards for Scheme' },
+  ],
+
+  henchmen: [
+    { name: "Fort Knox Assault Team", movie: "Goldfinger",              set: "Base" },
+    { name: "Institute Guards",       movie: "On Her Majesty's Secret Service", set: "Expansion 1" },
+    { name: "Martial Arts Students",  movie: "Man with the Golden Gun",  set: "Base" },
+    { name: "Liparus Soldiers",       movie: "The Spy Who Loved Me",    set: '"The Spy Who Loved Me"' },
+    { name: "Wavekrest Divers",       movie: "License to Kill",         set: "Expansion 1" },
+    { name: "Russian Soldiers",       movie: "Goldeneye",               set: "Base" },
+    { name: "Embassy Guards",         movie: "Casino Royale",           set: "Base" },
+    { name: "Spectre Infiltrators",   movie: "No Time to Die",          set: '"No Time to Die"' },
+    { name: "Disco Volante Frogmen",  movie: "Thunderball",             set: '"Thunderball"' },
+  ],
+
+  // Hero groups: each entry has a type and list of options
+  bondHeroes: [
+    { name: "Goldfinger",                         set: "Base" },
+    { name: "On Her Majesty's Secret Service",    set: "Expansion 1" },
+    { name: "The Man with the Golden Gun",        set: "Base" },
+    { name: "The Spy Who Loved Me",               set: '"The Spy Who Loved Me"' },
+    { name: "License to Kill",                    set: "Expansion 1" },
+    { name: "Goldeneye",                          set: "Base" },
+    { name: "Casino Royale",                      set: "Base" },
+    { name: "No Time to Die",                     set: '"No Time to Die"' },
+    { name: "Thunderball",                        set: '"Thunderball"' },
+  ],
+
+  alliesHeroes: [
+    { name: "Allies — Goldfinger",                        set: "Base" },
+    { name: "Allies — On Her Majesty's Secret Service",   set: "Expansion 1" },
+    { name: "Allies — The Man with the Golden Gun",       set: "Base" },
+    { name: "Allies — The Spy Who Loved Me",              set: '"The Spy Who Loved Me"' },
+    { name: "Allies — License to Kill",                   set: "Expansion 1" },
+    { name: "Allies — Goldeneye",                         set: "Base" },
+    { name: "Allies — Casino Royale",                     set: "Base" },
+    { name: "Allies — No Time to Die",                    set: '"No Time to Die"' },
+    { name: "Allies — Thunderball",                       set: '"Thunderball"' },
+  ],
+
+  equipmentHeroes: [
+    { name: "Equipment — Goldfinger",                         set: "Base" },
+    { name: "Equipment — On Her Majesty's Secret Service",    set: "Expansion 1" },
+    { name: "Equipment — The Spy Who Loved Me",               set: '"The Spy Who Loved Me"' },
+    { name: "Equipment — License to Kill",                    set: "Expansion 1" },
+    { name: "Equipment — Goldeneye",                          set: "Base" },
+    { name: "Equipment — Casino Royale",                      set: "Base" },
+    { name: "Equipment — Thunderball",                        set: '"Thunderball"' },
+  ],
+
+  vehiclesHeroes: [
+    { name: "Vehicles — Goldfinger",                      set: "Base",                       type: "Vehicles" },
+    { name: "Vehicles — On Her Majesty's Secret Service", set: "Expansion 1",                type: "Vehicles" },
+    { name: "Vehicles — The Man with the Golden Gun",     set: "Base",                       type: "Vehicles" },
+    { name: "Vehicles — The Spy Who Loved Me",            set: '"The Spy Who Loved Me"',     type: "Vehicles" },
+    { name: "Q — License to Kill",                        set: "Expansion 1",                type: "Support" },
+    { name: "MI6 — Goldeneye",                            set: "Base",                       type: "Support" },
+    { name: "M — Casino Royale",                          set: "Base",                       type: "Support" },
+    { name: "Vehicles — No Time to Die",                  set: '"No Time to Die"',           type: "Vehicles" },
+    { name: "Vehicles — Thunderball",                     set: '"Thunderball"',              type: "Vehicles" },
+  ],
+
+  femaleHeroes: [
+    { name: "Pussy Galore",        set: "Base" },
+    { name: "Tracy Bond",          set: "Expansion 1" },
+    { name: "Andrea Anders",       set: "Base" },
+    { name: "Mary Goodnight",      set: "Base" },
+    { name: "Anya Anasova",        set: '"The Spy Who Loved Me"' },
+    { name: "Pam Bouvier",         set: "Expansion 1" },
+    { name: "Natalya Simonova",    set: "Base" },
+    { name: "Vesper Lynd",         set: "Base" },
+    { name: "Nomi",                set: '"No Time to Die"' },
+    { name: "Dr. Madeleine Swann", set: '"No Time to Die"' },
+    { name: '"Domino" Derval',     set: '"Thunderball"' },
+  ],
+};
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function pickN(arr, n) {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, n);
+}
+
+function getActiveExps() {
+  return new Set(
+    [...document.querySelectorAll('.exp-toggle.active')].map(el => el.dataset.exp)
+  );
+}
+
+function filterByExp(arr, exps) {
+  return arr.filter(item => exps.has(item.set));
+}
+
+function showError(msg) {
+  const out = document.getElementById('output');
+  out.innerHTML = `<p class="error-msg">⚠ ${msg}</p>`;
+}
+
+function getPlayerCount() {
+  const btn = document.querySelector('.player-btn.active');
+  return btn ? parseInt(btn.dataset.players) : 2;
+}
+
+function pickExcluding(arr, exclude) {
+  const excludeNames = exclude.map(x => x.name);
+  const filtered = arr.filter(x => !excludeNames.includes(x.name));
+  return filtered.length ? pick(filtered) : pick(arr);
+}
+
+function randomize() {
+  const exps    = getActiveExps();
+  const players = getPlayerCount();
+
+  if (exps.size === 0) { showError('Select at least one expansion to randomize.'); return; }
+
+  const masterminds   = filterByExp(DATA.masterminds, exps);
+  const schemes       = filterByExp(DATA.schemes, exps);
+  const henchmenPool  = filterByExp(DATA.henchmen, exps);
+  const villainGroups = filterByExp(DATA.villainGroups, exps);
+  const missionGroups = filterByExp(DATA.missionGroups, exps);
+
+  if (!masterminds.length) { showError('No Masterminds available for selected expansions.'); return; }
+  if (!schemes.length)     { showError('No Schemes available for selected expansions.'); return; }
+
+  const numHenchmen = players === 1 ? 0 : players >= 4 ? 2 : 1;
+  const numVGs      = players === 3 ? 2 : players === 4 ? 2 : players === 5 ? 3 : 1;
+  const numHeroes   = players === 1 ? 3 : 4; // non-Bond heroes (1 player = 4 total, others = 5)
+
+  if (numHenchmen > 0 && henchmenPool.length < numHenchmen) {
+    showError(`Not enough Henchmen available for ${players} players. Need ${numHenchmen}, have ${henchmenPool.length}. Select more expansions.`);
+    return;
+  }
+  if (villainGroups.length < numVGs) {
+    showError(`Not enough Villain Groups available for ${players} players. Need ${numVGs}, have ${villainGroups.length}. Select more expansions.`);
+    return;
+  }
+
+  const mm     = pick(masterminds);
+  const scheme = pick(schemes);
+
+  // Villain Groups: first is always locked to mastermind; extras are random (no repeats)
+  const vgs = [];
+  let primaryVg = DATA.villainGroups.find(v => v.key === mm.vgKey && exps.has(v.set));
+  if (!primaryVg) primaryVg = pick(villainGroups.length ? villainGroups : DATA.villainGroups);
+  vgs.push({ ...primaryVg, locked: true });
+
+  for (let i = 1; i < numVGs; i++) {
+    const extra = pickExcluding(villainGroups.length ? villainGroups : DATA.villainGroups, vgs);
+    vgs.push({ ...extra, locked: false });
+  }
+
+  // Mission Group
+  let mg, mgLocked;
+  if (scheme.mgKey) {
+    const lockedMg = DATA.missionGroups.find(m => m.key === scheme.mgKey);
+    if (lockedMg && exps.has(lockedMg.set)) {
+      mg = lockedMg; mgLocked = true;
+    } else {
+      mg = missionGroups.length ? pick(missionGroups) : pick(DATA.missionGroups); mgLocked = false;
+    }
+  } else {
+    mg = missionGroups.length ? pick(missionGroups) : pick(DATA.missionGroups);
+    mgLocked = false;
+  }
+
+  // Henchmen: first may be locked by scheme
+  const henchmenResult = [];
+  if (numHenchmen > 0) {
+    let first, firstLocked;
+    if (scheme.henchmanLocked) {
+      const locked = DATA.henchmen.find(h => h.name === scheme.henchmanLocked);
+      if (locked && exps.has(locked.set)) {
+        first = locked; firstLocked = true;
+      } else {
+        first = pick(henchmenPool); firstLocked = false;
+      }
+    } else {
+      first = pick(henchmenPool); firstLocked = false;
+    }
+    henchmenResult.push({ ...first, locked: firstLocked });
+
+    for (let i = 1; i < numHenchmen; i++) {
+      const extra = pickExcluding(henchmenPool, henchmenResult);
+      henchmenResult.push({ ...extra, locked: false });
+    }
+  }
+
+  // Heroes
+  const bondPool = filterByExp(DATA.bondHeroes, exps);
+  const nonBondAll = [
+    ...filterByExp(DATA.alliesHeroes, exps).map(h => ({ ...h, type: 'Allies' })),
+    ...filterByExp(DATA.equipmentHeroes, exps).map(h => ({ ...h, type: 'Equipment' })),
+    ...filterByExp(DATA.vehiclesHeroes, exps).map(h => ({ ...h, type: h.type })),
+    ...filterByExp(DATA.femaleHeroes, exps).map(h => ({ ...h, type: 'Female Interest' })),
+  ];
+
+  if (!bondPool.length)               { showError('No James Bond hero groups available for selected expansions.'); return; }
+  if (nonBondAll.length < numHeroes)  { showError('Not enough non-Bond hero groups available. Select more expansions.'); return; }
+
+  const bondHero = pick(bondPool);
+  const nonBond  = pickN(nonBondAll, numHeroes);
+
+  render(mm, vgs, scheme, mg, mgLocked, henchmenResult, bondHero, nonBond, players);
+}
+
+function lockedBadge(locked) {
+  return locked
+    ? `<span style="font-family:'Bebas Neue',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--gold);background:rgba(201,168,76,0.1);border:1px solid var(--gold-dim);padding:2px 7px;margin-left:8px;vertical-align:middle;">LOCKED</span>`
+    : `<span style="font-family:'Bebas Neue',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--text-dim);background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:2px 7px;margin-left:8px;vertical-align:middle;">RANDOM</span>`;
+}
+
+// ── GLOBAL STATE ────────────────────────────────────────────────────────────
+let STATE = null;
+
+function buildMgFromScheme(scheme, missionGroups, exps) {
+  if (scheme.mgKey) {
+    const lockedMg = DATA.missionGroups.find(m => m.key === scheme.mgKey);
+    if (lockedMg && exps.has(lockedMg.set)) return { mg: lockedMg, mgLocked: true };
+    const fallback = missionGroups.length ? pick(missionGroups) : pick(DATA.missionGroups);
+    return { mg: fallback, mgLocked: false };
+  }
+  return { mg: missionGroups.length ? pick(missionGroups) : pick(DATA.missionGroups), mgLocked: false };
+}
+
+function buildHenchmenFromScheme(scheme, henchmenPool, numHenchmen, exps) {
+  const result = [];
+  if (numHenchmen === 0) return result;
+  let first, firstLocked;
+  if (scheme.henchmanLocked) {
+    const locked = DATA.henchmen.find(h => h.name === scheme.henchmanLocked);
+    if (locked && exps.has(locked.set)) { first = locked; firstLocked = true; }
+    else { first = pick(henchmenPool); firstLocked = false; }
+  } else { first = pick(henchmenPool); firstLocked = false; }
+  result.push({ ...first, locked: firstLocked });
+  for (let i = 1; i < numHenchmen; i++) {
+    result.push({ ...pickExcluding(henchmenPool, result), locked: false });
+  }
+  return result;
+}
+
+function buildVgsFromMm(mm, villainGroups, numVGs, exps) {
+  const vgs = [];
+  let primary = DATA.villainGroups.find(v => v.key === mm.vgKey && exps.has(v.set));
+  if (!primary) primary = pick(villainGroups.length ? villainGroups : DATA.villainGroups);
+  vgs.push({ ...primary, locked: true });
+  for (let i = 1; i < numVGs; i++) {
+    vgs.push({ ...pickExcluding(villainGroups.length ? villainGroups : DATA.villainGroups, vgs), locked: false });
+  }
+  return vgs;
+}
+
+// ── RE-ROLL HANDLERS ─────────────────────────────────────────────────────────
+function rerollMastermind() {
+  const exps = getActiveExps();
+  const pool = filterByExp(DATA.masterminds, exps).filter(m => m.name !== STATE.mm.name);
+  if (!pool.length) return;
+  STATE.mm = pick(pool);
+  // Re-derive primary VG, excluding any extra VGs already in state
+  const villainGroups = filterByExp(DATA.villainGroups, exps);
+  const extraVgNames = STATE.vgs.slice(1).map(v => v.name);
+  let primary = DATA.villainGroups.find(v => v.key === STATE.mm.vgKey && exps.has(v.set) && !extraVgNames.includes(v.name));
+  if (!primary) {
+    const fallbackPool = (villainGroups.length ? villainGroups : DATA.villainGroups)
+      .filter(v => !extraVgNames.includes(v.name));
+    primary = fallbackPool.length ? pick(fallbackPool) : pick(villainGroups.length ? villainGroups : DATA.villainGroups);
+  }
+  STATE.vgs[0] = { ...primary, locked: true };
+  renderFromState(true);
+}
+
+function rerollVg(index) {
+  const exps = getActiveExps();
+  const villainGroups = filterByExp(DATA.villainGroups, exps);
+  const pool = (villainGroups.length ? villainGroups : DATA.villainGroups)
+    .filter(v => !STATE.vgs.some((g, i) => i !== index && g.name === v.name));
+  if (!pool.length) return;
+  STATE.vgs[index] = { ...pick(pool), locked: false };
+  renderFromState(true);
+}
+
+function rerollScheme() {
+  const exps = getActiveExps();
+  const pool = filterByExp(DATA.schemes, exps).filter(s => s.name !== STATE.scheme.name);
+  if (!pool.length) return;
+  STATE.scheme = pick(pool);
+  const missionGroups = filterByExp(DATA.missionGroups, exps);
+  const { mg, mgLocked } = buildMgFromScheme(STATE.scheme, missionGroups, exps);
+  STATE.mg = mg; STATE.mgLocked = mgLocked;
+  // Re-derive henchmen if scheme locks one
+  const henchmenPool = filterByExp(DATA.henchmen, exps);
+  STATE.henchmen = buildHenchmenFromScheme(STATE.scheme, henchmenPool, STATE.henchmen.length, exps);
+  renderFromState(true);
+}
+
+function rerollMg() {
+  const exps = getActiveExps();
+  const pool = filterByExp(DATA.missionGroups, exps).filter(m => m.name !== STATE.mg.name);
+  if (!pool.length) return;
+  STATE.mg = pick(pool.length ? pool : DATA.missionGroups);
+  STATE.mgLocked = false;
+  renderFromState(true);
+}
+
+function rerollHenchman(index) {
+  const exps = getActiveExps();
+  const pool = filterByExp(DATA.henchmen, exps)
+    .filter(h => !STATE.henchmen.some((g, i) => i !== index && g.name === h.name)
+              && h.name !== STATE.henchmen[index].name);
+  if (!pool.length) return;
+  STATE.henchmen[index] = { ...pick(pool), locked: false };
+  renderFromState(true);
+}
+
+function rerollBondHero() {
+  const exps = getActiveExps();
+  const pool = filterByExp(DATA.bondHeroes, exps).filter(h => h.name !== STATE.bondHero.name);
+  if (!pool.length) return;
+  STATE.bondHero = pick(pool);
+  renderFromState(true);
+}
+
+function rerollNonBondHero(index) {
+  const exps = getActiveExps();
+  const nonBondAll = [
+    ...filterByExp(DATA.alliesHeroes, exps).map(h => ({ ...h, type: 'Allies' })),
+    ...filterByExp(DATA.equipmentHeroes, exps).map(h => ({ ...h, type: 'Equipment' })),
+    ...filterByExp(DATA.vehiclesHeroes, exps).map(h => ({ ...h, type: h.type })),
+    ...filterByExp(DATA.femaleHeroes, exps).map(h => ({ ...h, type: 'Female Interest' })),
+  ];
+  const pool = nonBondAll.filter(h =>
+    !STATE.nonBond.some((g, i) => i !== index && g.name === h.name)
+    && h.name !== STATE.nonBond[index].name
+  );
+  if (!pool.length) return;
+  STATE.nonBond[index] = pick(pool);
+  renderFromState(true);
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function render(mm, vgs, scheme, mg, mgLocked, henchmenResult, bondHero, nonBond, players) {
+  STATE = { mm, vgs, scheme, mg, mgLocked, henchmen: henchmenResult, bondHero, nonBond, players };
+  renderFromState(false);
+}
+
+function renderFromState(rerollMode) {
+  const { mm, vgs, scheme, mg, mgLocked, henchmen: henchmenResult, bondHero, nonBond } = STATE;
+  const out = document.getElementById('output');
+  let delay = 0;
+
+  const rerollBtn = (fn) =>
+    `<button class="reroll-btn" onclick="${fn}" title="Re-roll">↺</button>`;
+
+  const vgCards = vgs.map((vg, i) => {
+    const label = vgs.length > 1 ? `Villain Group ${i + 1} ${lockedBadge(vg.locked)}` : `Villain Group ${lockedBadge(vg.locked)}`;
+    const meta  = vg.locked ? 'Paired with Mastermind' : 'Randomly selected';
+    // Primary VG locked to MM — only show reroll for extras
+    const btn   = (i > 0) ? rerollBtn(`rerollVg(${i})`) : '';
+    return `<div class="card" data-delay="${delay++}">
+        ${btn}
+        <p class="card-label">${label}</p>
+        <p class="card-value">${vg.name}</p>
+        <p class="card-meta">${vg.set} · ${meta}</p>
+      </div>`;
+  }).join('');
+
+  const henchmenCards = henchmenResult.map((h, i) => {
+    const label = henchmenResult.length > 1 ? `Henchmen ${i + 1} ${lockedBadge(h.locked)}` : `Henchmen ${lockedBadge(h.locked)}`;
+    const btn   = h.locked ? '' : rerollBtn(`rerollHenchman(${i})`);
+    return `<div class="card" data-delay="${delay++}">
+        ${btn}
+        <p class="card-label">${label}</p>
+        <p class="card-value">${h.name}</p>
+        <p class="card-meta">${h.movie} · ${h.set}${h.locked ? ' · Required by Scheme' : ''}</p>
+      </div>`;
+  }).join('');
+
+  out.innerHTML = `
+    <div class="results" id="cards">
+
+      <div class="card" data-delay="${delay++}">
+        ${rerollBtn('rerollMastermind()')}
+        <p class="card-label">Mastermind</p>
+        <p class="card-value">${mm.name}</p>
+        <p class="card-meta">${mm.movie} · ${mm.set}</p>
+        ${mm.note ? `<p class="card-note">⚠ ${mm.note}</p>` : ''}
+      </div>
+
+      ${vgCards}
+
+      <div class="card" data-delay="${delay++}">
+        ${rerollBtn('rerollScheme()')}
+        <p class="card-label">Scheme</p>
+        <p class="card-value">${scheme.name}</p>
+        <p class="card-meta">${scheme.movie} · ${scheme.set}</p>
+        ${scheme.note ? `<p class="card-note">⚠ ${scheme.note}</p>` : ''}
+      </div>
+
+      <div class="card" data-delay="${delay++}">
+        ${mgLocked ? '' : rerollBtn('rerollMg()')}
+        <p class="card-label">Mission Group ${lockedBadge(mgLocked)}</p>
+        <p class="card-value">${mg.name}</p>
+        <p class="card-meta">${mg.set}${mgLocked ? ' · Required by Scheme' : ' · Randomly selected'}</p>
+      </div>
+
+      ${henchmenCards}
+
+      <div class="card heroes" data-delay="${delay++}">
+        <p class="card-label">Hero Groups — 1 James Bond + ${nonBond.length} Non-Bond &nbsp;·&nbsp; ${STATE.players} Player${STATE.players === 1 ? "" : "s"}</p>
+        <ul class="hero-list">
+          <li class="hero-item bond-hero">
+            <button class="hero-reroll" onclick="rerollBondHero()" title="Re-roll">↺</button>
+            <span class="hero-badge">✦ James Bond</span>
+            <span class="hero-name">${bondHero.name}</span>
+            <span class="hero-meta">${bondHero.set}</span>
+          </li>
+          ${nonBond.map((h, i) => `
+          <li class="hero-item">
+            <button class="hero-reroll" onclick="rerollNonBondHero(${i})" title="Re-roll">↺</button>
+            <span class="hero-badge">${h.type}</span>
+            <span class="hero-name">${h.name}</span>
+            <span class="hero-meta">${h.set}</span>
+          </li>`).join('')}
+        </ul>
+      </div>
+
+    </div>
+  `;
+
+  if (!rerollMode) {
+    // Fresh randomize: staggered reveal
+    const cards = out.querySelectorAll('.card');
+    cards.forEach((card, i) => {
+      setTimeout(() => card.classList.add('visible'), i * 80);
+    });
+  } else {
+    // Re-roll: instant reveal
+    out.querySelectorAll('.card').forEach(c => c.classList.add('visible'));
+  }
+
+  // Persist state
+  try { localStorage.setItem('legendary007_state', JSON.stringify(STATE)); } catch(e) {}
+}
+
+// Player count toggle logic
+document.getElementById('playerBtns').addEventListener('click', function(e) {
+  const btn = e.target.closest('.player-btn');
+  if (!btn) return;
+  document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+});
+
+// Expansion toggle logic
+document.getElementById('expGrid').addEventListener('click', function(e) {
+  const toggle = e.target.closest('.exp-toggle');
+  if (!toggle) return;
+  toggle.classList.toggle('active');
+  updateToggleAllBtn();
+});
+
+function updateToggleAllBtn() {
+  const all    = document.querySelectorAll('.exp-toggle');
+  const active = document.querySelectorAll('.exp-toggle.active');
+  const btn    = document.getElementById('toggleAllBtn');
+  btn.textContent = active.length === all.length ? 'Deselect All' : 'Select All';
+}
+
+document.getElementById('toggleAllBtn').addEventListener('click', function() {
+  const all    = document.querySelectorAll('.exp-toggle');
+  const active = document.querySelectorAll('.exp-toggle.active');
+  const selectAll = active.length !== all.length;
+  all.forEach(el => el.classList.toggle('active', selectAll));
+  this.textContent = selectAll ? 'Deselect All' : 'Select All';
+});
+
+// Save expansion preferences whenever they change
+document.getElementById('expGrid').addEventListener('click', function() {
+  try {
+    const active = [...document.querySelectorAll('.exp-toggle.active')].map(el => el.dataset.exp);
+    localStorage.setItem('legendary007_exps', JSON.stringify(active));
+  } catch(e) {}
+});
+
+document.getElementById('playerBtns').addEventListener('click', function(e) {
+  const btn = e.target.closest('.player-btn');
+  if (!btn) return;
+  try { localStorage.setItem('legendary007_players', btn.dataset.players); } catch(e) {}
+});
+
+// Restore preferences and last state on load
+(function restoreFromStorage() {
+  try {
+    // Restore expansion selections
+    const savedExps = JSON.parse(localStorage.getItem('legendary007_exps') || 'null');
+    if (savedExps) {
+      document.querySelectorAll('.exp-toggle').forEach(el => {
+        el.classList.toggle('active', savedExps.includes(el.dataset.exp));
+      });
+    }
+    // Restore player count
+    const savedPlayers = localStorage.getItem('legendary007_players');
+    if (savedPlayers) {
+      document.querySelectorAll('.player-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.players === savedPlayers);
+      });
+    }
+    // Restore last generated setup
+    const savedState = JSON.parse(localStorage.getItem('legendary007_state') || 'null');
+    if (savedState) {
+      STATE = savedState;
+      renderFromState(false);
+    }
+  } catch(e) {}
+})();
+
+// Init button label
+updateToggleAllBtn();
+
+document.getElementById('randomBtn').addEventListener('click', randomize);
+</script>
+</body>
+</html>
